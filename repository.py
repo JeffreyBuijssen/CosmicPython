@@ -82,15 +82,22 @@ class ORMlessSqlLit3Repository(AbstractRepository):
         )
 
     def get(self, reference):
-       result = self.cursor.execute(
+        result = self.cursor.execute(
             f"""
                 SELECT reference, sku, qty, eta
-                FROM batches WHERE reference = {reference};
+                FROM "batches" WHERE reference = {reference};
             """
-        )
+        ).one()
         return model.Batch(result["reference"], result["sku"], result["qty"], result["eta"])
         
-
+    def list(self):
+        batches = self.cursor.execute(
+            """
+            SELECT reference, sku, qty, eta
+            FROM "batches"
+            """
+        ).all()
+        return list(model.Batch(x["reference"], x["sku"], x["qty"], x["eta"]) for x in batches)
 
 
 class FakeRepository(AbstractRepository):
