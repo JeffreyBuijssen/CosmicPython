@@ -64,7 +64,7 @@ class ORMlessSqlLit3Repository(AbstractRepository):
                 FOREIGN KEY ([batch_id]) REFERENCES "batches" ([id])
                             ON DELETE NO ACTION ON UPDATE NO ACTION
             );
-            CREATE INDEX [IFK_OrderLinesBatchId] ON "order_lines" ([order_id, batch_id])
+            CREATE INDEX [IFK_OrderLinesBseleatchId] ON "order_lines" ([order_id, batch_id])
             """
         )
 
@@ -87,7 +87,7 @@ class ORMlessSqlLit3Repository(AbstractRepository):
                 SELECT reference, sku, qty, eta
                 FROM "batches" WHERE reference = {reference};
             """
-        ).one()
+        ).fetchone()
         return model.Batch(result["reference"], result["sku"], result["qty"], result["eta"])
         
     def list(self):
@@ -96,7 +96,7 @@ class ORMlessSqlLit3Repository(AbstractRepository):
             SELECT reference, sku, qty, eta
             FROM "batches"
             """
-        ).all()
+        ).fetchall()
         return list(model.Batch(x["reference"], x["sku"], x["qty"], x["eta"]) for x in batches)
 
 
