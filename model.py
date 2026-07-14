@@ -3,8 +3,10 @@ from dataclasses import dataclass
 from datetime import date
 from typing import List, Optional, Set
 
+
 class OutOfStock(Exception):
     pass
+
 
 def allocate(line:OrderLine, batches:List[Batch]) -> str:
     try:
@@ -14,12 +16,13 @@ def allocate(line:OrderLine, batches:List[Batch]) -> str:
     except StopIteration as exc:
         raise OutOfStock(f"Out of stock for sku{line.sku}") from exc
 
+
 # @dataclase(frozen=True) makes OrderLine immutable
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class OrderLine:
-    orderid:str
-    sku:str
-    qty:int
+    orderid: str
+    sku: str
+    qty: int
 
 class Batch:
     def __init__(self, ref:str, sku:str, qty:int, eta:Optional[date]):
@@ -68,4 +71,3 @@ class Batch:
             self.sku == line.sku and
             self.available_quantity >= line.qty
         )
-        # and line not in self._allocations <- removed since sets force unique elements

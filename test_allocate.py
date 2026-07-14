@@ -1,3 +1,5 @@
+from typing import Final
+
 import pytest
 
 from model import Batch, OrderLine, OutOfStock, allocate
@@ -33,7 +35,7 @@ def test_prefers_earlier_batches():
 
 
 def test_returns_allocated_batch_ref():
-    SKU="HIGHBROW-POSTER"
+    SKU:Final[str]="HIGHBROW-POSTER"
     in_stock_batch = Batch("in-stock-batch-ref", SKU, 100, eta=None)
     shipment_batch = Batch("shipment-batch-ref", SKU, 100, eta=tomorrow)
     line = OrderLine("oref", SKU, 10)

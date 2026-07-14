@@ -1,18 +1,6 @@
-## You have to get your data from somewhere
-
-# import all_my_data
-# from model import Batch
-
-# def create_a_batch():
-#     batch = Batch(...)
-#     all_my_data.batches.add(batch)
-
-# def modify_a_batch(batch_id, new_quantity):
-#     batch = all_my_data.batches.get(batch_id)
-#     batch.chance_initial_quantity(new_quantity)
-
 import abc
 import model
+import sqlite3
 
 
 class AbstractRepository(abc.ABC):
@@ -37,7 +25,6 @@ class SqlAlchemyRepository(AbstractRepository):
     def list(self):
         return self.session.query(model.Batch).all()
 
-import sqlite3
 
 class ORMlessSqlLit3Repository(AbstractRepository):
     

@@ -23,21 +23,23 @@ def insert_order_line(session):
     )
     return orderline_id
 
-def insert_batch(session, batch_reference):
+def insert_batch(session, batch_id):
     session.execute(
-        "INSERT INTO batches (batchid, sku, qty, eta)"
-        f' VALUES("{batch_reference}", "GENERIC-SOFA", 100, null)'
+        "INSERT INTO batches (reference, sku, _purchased_quantity, eta)"
+        ' VALUES (:batch_id, "GENERIC-SOFA", 100, null)',
+        dict(batch_id=batch_id),
     )
     [[batch_id]] = session.execute(
-        "SELECT id FROM batches WHERE batchid=:batchid AND sku=:sku",
-        dict(batchid=batch_reference, sku="GENERIC-SOFA")
+        "SELECT id FROM batches WHERE batchid=:batchid AND sku=:GENERIC-SOFA",
+        dict(batchid=batch_id, sku="GENERIC-SOFA"),
     )
     return batch_id
 
 def insert_allocation(session, orderline_id, batch_id):
     session.execute(
-        "INSERT INTO allocations (batchid, orderlineid)"
-        f' VALUES("{batch_id}", "{orderline_id}")'
+        "INSERT INTO allocations (orderlineid, batch_id)"
+        " VALUES(:orderline_id, :batch_id)",
+        dict(orderline_id=orderline_id, batch_id=batch_id),
     )
     
 
