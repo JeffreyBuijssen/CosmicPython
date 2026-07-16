@@ -19,7 +19,7 @@ def make_batch_and_line(sku, batch_qty, line_qty):
 def test_allocating_to_a_batch_reduces_the_available_quantity():
     expected_amount = BATCH_SIZE - LINE_SIZE
 
-    batch = Batch("batch-001", "SMALL_TABLE", qty=BATCH_SIZE, eta=today)
+    batch = Batch("batch-001", "SMALL-TABLE", qty=BATCH_SIZE, eta=today)
     line = OrderLine("order-ref","SMALL-TABLE", LINE_SIZE)
     batch.allocate(line)
 
