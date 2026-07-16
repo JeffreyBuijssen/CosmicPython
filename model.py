@@ -1,8 +1,9 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
+# pylint: disable=line-too-long
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
-from typing import List, Optional, Set
-
+from typing import List, Optional
 
 class OutOfStock(Exception):
     pass
@@ -49,7 +50,7 @@ class Batch:
         if other.eta is None:
             return True
         return self.eta > other.eta
-    
+
     def allocate(self, line:OrderLine) -> None:
         if self.can_allocate(line):
             self._allocations.add(line)

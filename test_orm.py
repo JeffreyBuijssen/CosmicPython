@@ -1,3 +1,4 @@
+# pylint: disable=no-member, protected-access, missing-module-docstring, missing-function-docstring
 from datetime import date
 
 from sqlalchemy import text
@@ -6,7 +7,7 @@ import model
 
 ### Throwaway tests: ###
 def test_orderline_mapper_can_load_lines(session):
-    
+
     session.execute(
         text(
         "INSERT INTO order_lines (orderid, sku, qty) VALUES "

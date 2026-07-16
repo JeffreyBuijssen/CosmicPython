@@ -1,5 +1,6 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring, redefined-outer-name
 import pytest
-from sqlalchemy import MetaData, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, clear_mappers
 
 # from orm import metadata, start_mappers
@@ -9,11 +10,10 @@ from orm import start_mappers, metadata
 @pytest.fixture
 def in_memory_db():
     engine = create_engine("sqlite:///:memory:")
-    
+
     metadata.create_all(engine)
     # metadata.create_all(engine)
     return engine
-
 
 @pytest.fixture
 def session(in_memory_db):

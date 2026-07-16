@@ -1,9 +1,11 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring, invalid-name
+
 from typing import Final
+from datetime import date, timedelta
 
 import pytest
 
 from model import Batch, OrderLine, OutOfStock, allocate
-from datetime import date, timedelta
 
 today = date.today()
 tomorrow = today + timedelta(days=1)

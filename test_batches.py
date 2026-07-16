@@ -1,5 +1,5 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring
 from datetime import date, timedelta
-import pytest
 
 from model import Batch, OrderLine
 

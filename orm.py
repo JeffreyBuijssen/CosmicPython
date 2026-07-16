@@ -1,3 +1,4 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, MetaData, Table
 from sqlalchemy.orm import registry, relationship
 
@@ -52,7 +53,7 @@ def start_mappers():
     #         )
     #     },
     # )
-    # New replacement, 
+    # New replacement,
     lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
     mapper_registry.map_imperatively(
         model.Batch,

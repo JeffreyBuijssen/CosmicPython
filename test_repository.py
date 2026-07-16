@@ -1,6 +1,8 @@
+# pylint: disable=missing-module-docstring, missing-function-docstring, protected-access
 from sqlalchemy import text
 
-import model, repository
+import model
+import repository
 
 def test_repository_can_save_a_batch(session):
     batch = model.Batch("batch1", "RUSTY-SOUPDISH", 100, eta=None)
@@ -43,7 +45,6 @@ def insert_allocation(session, orderline_id, batch_id):
         " VALUES(:orderline_id, :batch_id)"),
         dict(orderline_id=orderline_id, batch_id=batch_id),
     )
-    
 
 def test_repository_can_retreive_batch_with_allocations(session):
     orderline_id = insert_order_line(session)
