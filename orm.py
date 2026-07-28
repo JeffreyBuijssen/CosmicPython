@@ -21,7 +21,7 @@ batches = Table(
     "batches",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("reference", String(255)),
+    Column("reference", String(255), unique=True),
     Column("sku", String(255)),
     Column("_purchased_quantity", Integer, nullable=False),
     Column("eta", Date, nullable=True),
@@ -53,7 +53,7 @@ def start_mappers():
     #         )
     #     },
     # )
-    # New replacement,
+    # New replacement:
     lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
     mapper_registry.map_imperatively(
         model.Batch,
