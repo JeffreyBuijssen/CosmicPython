@@ -3,7 +3,7 @@ from datetime import date
 
 from sqlalchemy import text
 
-import model
+from domain import model
 
 ### Throwaway tests: ###
 def test_orderline_mapper_can_load_lines(session):

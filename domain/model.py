@@ -8,7 +8,7 @@ from typing import List, Optional
 class OutOfStock(Exception):
     pass
 
-class UnallocatedLine(Exception):
+class LineNotAllocated(Exception):
     pass
 
 
@@ -26,7 +26,7 @@ def deallocate(line:OrderLine, batches:List[Batch]) -> str:
         batch.deallocate(line)
         return batch.reference
     except StopIteration as exc:
-        raise UnallocatedLine(f"Line not allocated for sku {line.sku}") from exc
+        raise LineNotAllocated(f"Line not allocated for sku {line.sku}") from exc
 
 
 # @dataclase(frozen=True) makes OrderLine immutable
@@ -84,5 +84,5 @@ class Batch:
             self.available_quantity >= line.qty
         )
 
-    def is_allocated(self, line) -> bool:
+    def is_allocated(self, line:OrderLine) -> bool:
         return line in self._allocations

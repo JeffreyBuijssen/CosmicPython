@@ -1,9 +1,11 @@
 from __future__ import annotations
+from datetime import date
+from typing import Optional
 
-import model
-from model import OrderLine
-from repository import AbstractRepository
 
+from domain import model
+from domain.model import OrderLine
+from adapters.repository import AbstractRepository
 
 class InvalidSku(Exception):
     pass
@@ -11,7 +13,7 @@ class InvalidSku(Exception):
 def is_valid_sku(sku, batches):
     return sku in {b.sku for b in batches}
 
-def add_batch(batch_ref, sku, qty, eta, repo: AbstractRepository, session):
+def add_batch(batch_ref, sku, qty, eta: Optional[date], repo: AbstractRepository, session) -> None:
     repo.add(model.Batch(batch_ref, sku, qty, eta))
     session.commit()
 
@@ -31,4 +33,3 @@ def deallocate(line: OrderLine, repo: AbstractRepository, session):
     batchref = model.deallocate(line, batches)
     session.commit()
     return batchref
-    

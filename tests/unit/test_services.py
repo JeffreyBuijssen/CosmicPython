@@ -1,9 +1,9 @@
 
 import pytest
 
-import model
-import services
-from repository import AbstractRepository
+from domain import model
+from service_layer import services
+from adapters.repository import AbstractRepository
 
 
 class FakeRepository(AbstractRepository):
@@ -126,8 +126,6 @@ def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku
     services.allocate(line2, repo, session) # allocated quantity = 22
     # services.allocate(line3, repo, session) <- invalid allocation
 
-
-    
     assert repo.get("b1").allocated_quantity == 22
 
     services.deallocate(line, repo, session) # allocated quantity = 10
@@ -143,8 +141,7 @@ def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku
     
 
 def test_trying_to_deallocate_unallocated_batch():
-    ...  #  TODO: should this error or pass silently? up to you.
-
+    
     sku:str = "SKU-1"
 
     repo = FakeRepository([])
@@ -155,7 +152,7 @@ def test_trying_to_deallocate_unallocated_batch():
     services.allocate(line, repo, session) # allocated quantity = 10
     services.deallocate(line, repo, session) # allocated quantity = 0
 
-    with pytest.raises(model.UnallocatedLine, match=f"Line not allocated for sku {sku}"):
+    with pytest.raises(model.LineNotAllocated, match=f"Line not allocated for sku {sku}"):
             # Invalid deallocation, allocated quantity = 10
             services.deallocate(line, repo, FakeSession())
 

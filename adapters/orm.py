@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, MetaData, Table
 from sqlalchemy.orm import registry, relationship
 
-import model
+from domain import model
 
 metadata = MetaData()
 mapper_registry = registry()
@@ -37,23 +37,7 @@ allocations = Table(
     Column("batch_id", ForeignKey("batches.id")),
 )
 
-
-
-# This doesn't work anymore in the current version of sqlAlchemy.
-# However figuring out how it exactly does work is outside the scope of this repo.
 def start_mappers():
-    # No longer supported:
-    # lines_mapper = mapper(model.OrderLine, order_lines)
-    # mapper(
-    #     model.Batch,
-    #     batches,
-    #     properties={
-    #         "_allocations":relationship(
-    #             lines_mapper, secondary=allocations, colleciton_class=set,
-    #         )
-    #     },
-    # )
-    # New replacement:
     lines_mapper = mapper_registry.map_imperatively(model.OrderLine, order_lines)
     mapper_registry.map_imperatively(
         model.Batch,
