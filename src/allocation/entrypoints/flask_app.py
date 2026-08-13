@@ -9,62 +9,16 @@ from allocation.domain import model
 from allocation.adapters import orm, repository
 from allocation.service_layer import services
 from allocation.service_layer import unit_of_work
-# import services
 
-# orm.start_mappers()
-# get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
-# app = Flask(__name__)
-
-# @app.route("/allocate", methods=["POST"])
-# def allocate_endpoint():
-#     session = get_session()
-#     repo = repository.SqlAlchemyRepository(session)
-#     line = model.OrderLine(
-#         request.json["orderid"],
-#         request.json["sku"],
-#         request.json["qty"],
-#     )
-
-#     try:
-#         batchref = services.allocate(line, repo, session)
-#     except (model.OutOfStock, services.InvalidSku) as e:
-#         return {"message": str(e)}, 400
-    
-#     return {"batchref": batchref}, 201
-
-orm.start_mappers()
-get_session = sessionmaker(bind=create_engine(config.get_postgres_uri()))
 app = Flask(__name__)
 
 def is_valid_sku(sku, batches):
     return sku in {b.sku for b in batches}
 
-# OLD:
-# @app.route("/allocate", methods=["POST"])
-# def allocate_endpoint():
-#     session = get_session()
-#     batches = repository.SqlAlchemyRepository(session).list()
-#     line = model.OrderLine(
-#         request.json["orderid"],
-#         request.json["sku"],
-#         request.json["qty"],
-#     )
-#     if not is_valid_sku(line.sku, batches):
-#         return {"message": f"Invalid sku {line.sku}"}, 400
-#     try:
-#         batchref = model.allocate(line, batches)
-#     except model.OutOfStock as e:
-#         return {"message": str(e)}, 400
-    
-
-#     session.commit()
-#     return {"batchref": batchref}, 201
 
 # NEW abstracted flow:
 @app.route("/add_batch", methods=["POST"])
 def add_batch():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
     uow = unit_of_work.SqlAlchemyUnitOfWork()
     eta = request.json["eta"]
     if eta is not None:
@@ -80,8 +34,7 @@ def add_batch():
 
 @app.route("/allocate", methods=["POST"])
 def allocate_endpoint():
-    # session = get_session()
-    # repo = repository.SqlAlchemyRepository(session)
+    
     uow = unit_of_work.SqlAlchemyUnitOfWork()
     try:
         batchref = services.allocate(
@@ -96,8 +49,6 @@ def allocate_endpoint():
 
 @app.route("/deallocate", methods=["POST"])
 def deallocate_endpoint():
-    # session = get_session()
-    # repo = repository.SqlAlchemyRepository(session)
     uow = unit_of_work.SqlAlchemyUnitOfWork()
 
     try:
@@ -112,6 +63,3 @@ def deallocate_endpoint():
         return {"message": str(e)}, 400
 
     return {"batchref": batchref}, 201
-
-
-        
