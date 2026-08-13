@@ -1,9 +1,10 @@
 
 import pytest
 
-from domain import model
-from service_layer import services
-from adapters import repository
+from allocation.domain import model
+from allocation.service_layer import services
+from allocation.adapters import repository
+
 
 
 class FakeRepository(repository.AbstractRepository):
@@ -28,53 +29,67 @@ class FakeRepository(repository.AbstractRepository):
 class FakeSession:
     comitted = False
 
+class FakeUnitOfWork:
+    def __init__(self):
+        self.batches = FakeRepository([])
+        self.comitted = False
+
+    def __exit__(self, *args):
+        pass
+
+    def __enter__(self):
+        return self
+
     def commit(self):
         self.comitted = True
 
+    def rollback(self):
+        pass
+
 def test_allocate_returns_allocation():
     sku:str = "COMPLICATED-LAMP"
-    repo, session = FakeRepository([]), FakeSession()
-    services.add_batch("batch1", sku, 100, None, repo, session)
-    result = services.allocate("o1", sku, 10, repo, FakeSession())
+    uow = FakeUnitOfWork()
+    services.add_batch("batch1", sku, 100, None, uow)
+    result = services.allocate("o1", sku, 10, uow)
     assert result == "batch1"
 
 def test_allocate_errors_for_invalid_sku():
     bad_sku:str = "NONEXISTENTSKU"
     real_sku:str = "AREALSKU"
-    repo, session = FakeRepository([]), FakeSession()
-    services.add_batch("b1", real_sku, 100, None, repo, session)
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", real_sku, 100, None, uow)
     with pytest.raises(services.InvalidSku, match=f"Invalid sku {bad_sku}"):
-        services.allocate("o1", bad_sku, 10, repo, FakeSession())
+        services.allocate("o1", bad_sku, 10, uow)
 
 def test_commits():
     sku:str = "OMINOUS-MIRROR"
-    repo = FakeRepository([])
-    session = FakeSession ()
-    services.add_batch("b1", sku, 100, None, repo, session)
-    services.allocate("o1", sku, 10, repo, session)
-    assert session.comitted is True
+    uow = FakeUnitOfWork()
+    services.add_batch("b1", sku, 100, None, uow)
+    services.allocate("o1", sku, 10, uow)
+    assert uow.comitted is True
 
 def test_add_batch():
-    repo, session = FakeRepository([]), FakeSession()
-    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, repo, session)
-    assert repo.get("b1") is not None
-    assert session.comitted
+    uow = FakeUnitOfWork()
+    # repo, session = FakeRepository([]), FakeSession()
+    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
+    assert uow.batches.get("b1") is not None
+    assert uow.comitted
 
 
 def test_deallocate_decrements_available_quantity():
     sku:str = "BLUE-PLINTH"
-    repo, session = FakeRepository([]), FakeSession()
+    uow = FakeUnitOfWork()
 
-    services.add_batch("b1", sku, 100, None, repo, session)
+    services.add_batch("b1", sku, 100, None, uow)
 
 
-    reference:str = services.allocate("o1", sku, 10, repo, session)
+    reference:str = services.allocate("o1", sku, 10, uow)
     assert reference == "b1"
-    assert repo.get(reference).available_quantity == 90
+    assert uow.batches.get(reference).available_quantity == 90
 
-    reference = services.deallocate("o1", sku, 10, repo, session)
+    reference = services.deallocate("o1", sku, 10, uow)
     assert reference == "b1"
-    assert repo.get(reference).available_quantity == 100
+    assert uow.batches.get(reference).available_quantity == 100
 
     
 def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku instead?
@@ -82,41 +97,50 @@ def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku
     other_sku:str = "other-sku"
     bad_sku:str = "incorrect-SKU"
 
-    repo, session = FakeRepository([]), FakeSession()
+    uow = FakeUnitOfWork()
+    
+    services.add_batch("b1", sku, 100, None, uow)
+    services.add_batch("b2", other_sku, 100, None, uow)
 
-    services.add_batch("b1", sku, 100, None, repo, session)
-    services.add_batch("b2", other_sku, 100, None, repo, session)
+    services.allocate("o1", sku, 12, uow) # allocated quantity = 10
+    services.allocate("o2", sku, 10, uow) # allocated quantity = 22
 
-    services.allocate("o1", sku, 12, repo, session) # allocated quantity = 10
-    services.allocate("o2", sku, 10, repo, session) # allocated quantity = 22
+    assert uow.batches.get("b1").allocated_quantity == 22
 
-    assert repo.get("b1").allocated_quantity == 22
-
-    services.deallocate("o1", sku, 12, repo, session) # allocated quantity = 10
+    services.deallocate("o1", sku, 12, uow) # allocated quantity = 10
 
     with pytest.raises(services.InvalidSku, match=f"Invalid sku {bad_sku}"):
         # Invalid deallocation, allocated quantity = 10
-        services.deallocate("o3", bad_sku, 10, repo, FakeSession())
+        services.deallocate("o3", bad_sku, 10, uow)
 
 
-    batch_result = repo.get("b1")
+    batch_result = uow.batches.get("b1")
     assert batch_result.allocated_quantity == 10
     assert batch_result.sku == sku
     
 
 def test_trying_to_deallocate_unallocated_batch():
     sku:str = "SKU-1"
-    repo, session = FakeRepository([]), FakeSession()
+    uow = FakeUnitOfWork()
 
-    services.add_batch("b1", sku, 100, None, repo, session)
-    services.allocate("o1", sku, 10, repo, session) # allocated quantity = 10
-    services.deallocate("o1", sku, 10, repo, session) # allocated quantity = 0
+    services.add_batch("b1", sku, 100, None, uow)
+    services.allocate("o1", sku, 10, uow) # allocated quantity = 10
+    services.deallocate("o1", sku, 10, uow) # allocated quantity = 0
 
-    with pytest.raises(model.LineNotAllocated, match=f"Line not allocated for sku {sku}"):
+    
+    with pytest.raises(model.LineNotAllocated, match=f"Line not allocated for sku {sku}") as exc_info:
         # Invalid deallocation, allocated quantity = 10
-        services.deallocate("o1", sku, 10, repo, FakeSession())
+        
+        try:
+            services.deallocate("o1", sku, 10, uow)
+        except Exception as exc:
+            print(f"Expected: {(model.LineNotAllocated)}")
+            print(f"found: {type(exc)}")
+            print(f"Is instance of type: {isinstance(exc, model.LineNotAllocated)}")
+            print(f"Exc msg: {exc.args[0]}")
+            raise exc
 
 
-    batch_result = repo.get("b1")
+    batch_result = uow.batches.get("b1")
     assert batch_result.allocated_quantity == 0
     assert batch_result.sku == sku

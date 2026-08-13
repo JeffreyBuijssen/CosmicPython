@@ -1,6 +1,6 @@
 import abc
 # import sqlite3
-from domain import model
+from allocation.domain import model
 
 
 class AbstractRepository(abc.ABC):

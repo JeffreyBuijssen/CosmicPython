@@ -1,7 +1,7 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring
 from datetime import date, timedelta
 
-from domain.model import Batch, OrderLine
+from src.allocation.domain.model import Batch, OrderLine
 
 today = date.today()
 tomorrow = today + timedelta(days=1)

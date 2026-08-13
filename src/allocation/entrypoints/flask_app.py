@@ -4,10 +4,11 @@ from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import config
-from domain import model
-from adapters import orm, repository
-from service_layer import services
+from allocation import config
+from allocation.domain import model
+from allocation.adapters import orm, repository
+from allocation.service_layer import services
+from allocation.service_layer import unit_of_work
 # import services
 
 # orm.start_mappers()
@@ -64,6 +65,7 @@ def is_valid_sku(sku, batches):
 def add_batch():
     session = get_session()
     repo = repository.SqlAlchemyRepository(session)
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
     eta = request.json["eta"]
     if eta is not None:
         eta = datetime.fromisoformat(eta).date()
@@ -72,23 +74,21 @@ def add_batch():
         request.json["sku"],
         request.json["qty"],
         eta,
-        repo,
-        session
+        uow
     )
     return "OK", 201
 
 @app.route("/allocate", methods=["POST"])
 def allocate_endpoint():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
-
+    # session = get_session()
+    # repo = repository.SqlAlchemyRepository(session)
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
     try:
         batchref = services.allocate(
             request.json["orderid"],
             request.json["sku"],
             request.json["qty"],
-            repo,
-            session)
+            uow)
     except (model.OutOfStock, services.InvalidSku) as e:
         return {"message": str(e)}, 400
 
@@ -96,9 +96,9 @@ def allocate_endpoint():
 
 @app.route("/deallocate", methods=["POST"])
 def deallocate_endpoint():
-    session = get_session()
-    repo = repository.SqlAlchemyRepository(session)
-
+    # session = get_session()
+    # repo = repository.SqlAlchemyRepository(session)
+    uow = unit_of_work.SqlAlchemyUnitOfWork()
 
     try:
         # batchref = services.deallocate(line, repo, session)
@@ -106,8 +106,7 @@ def deallocate_endpoint():
             request.json["orderid"],
             request.json["sku"],
             request.json["qty"],
-            repo,
-            session
+            uow
         )
     except (model.LineNotAllocated, services.InvalidSku) as e:
         return {"message": str(e)}, 400
