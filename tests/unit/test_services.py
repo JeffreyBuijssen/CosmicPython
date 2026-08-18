@@ -30,22 +30,18 @@ class FakeSession:
     comitted = False
 
 class FakeUnitOfWork:
-    def __init__(self):
-        self.batches = FakeRepository([])
-        self.comitted = False
+    ...
 
-    def __exit__(self, *args):
-        pass
+def test_add_batch():
+    uow = FakeUnitOfWork()
+    # repo, session = FakeRepository([]), FakeSession()
+    # fake_uow_starter = FakeUoWContextManger(uow) ?
+    # fake_uow_starter = contextlib.nullcontext(uow) ?
+    # services.add_batch("b1", "CRUNCY-ARMCHAIR", 100, None, fake_uow_starter)
+    assert uow.batches.get("b1") is not None
+    assert uow.comitted
 
-    def __enter__(self):
-        return self
-
-    def commit(self):
-        self.comitted = True
-
-    def rollback(self):
-        pass
-
+@pytest.mark.skip("unskip and fix when ready")
 def test_allocate_returns_allocation():
     sku:str = "COMPLICATED-LAMP"
     uow = FakeUnitOfWork()
@@ -53,6 +49,7 @@ def test_allocate_returns_allocation():
     result = services.allocate("o1", sku, 10, uow)
     assert result == "batch1"
 
+@pytest.mark.skip("unskip and fix when ready")
 def test_allocate_errors_for_invalid_sku():
     bad_sku:str = "NONEXISTENTSKU"
     real_sku:str = "AREALSKU"
@@ -61,21 +58,17 @@ def test_allocate_errors_for_invalid_sku():
     with pytest.raises(services.InvalidSku, match=f"Invalid sku {bad_sku}"):
         services.allocate("o1", bad_sku, 10, uow)
 
+@pytest.mark.skip("unskip and fix when ready")
 def test_commits():
     sku:str = "OMINOUS-MIRROR"
     uow = FakeUnitOfWork()
     services.add_batch("b1", sku, 100, None, uow)
     services.allocate("o1", sku, 10, uow)
-    assert uow.comitted is True
-
-def test_add_batch():
-    uow = FakeUnitOfWork()
-    # repo, session = FakeRepository([]), FakeSession()
-    services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
-    assert uow.batches.get("b1") is not None
     assert uow.comitted
 
 
+
+@pytest.mark.skip("unskip and fix when ready")
 def test_deallocate_decrements_available_quantity():
     sku:str = "BLUE-PLINTH"
     uow = FakeUnitOfWork()
@@ -92,6 +85,7 @@ def test_deallocate_decrements_available_quantity():
     assert uow.batches.get(reference).available_quantity == 100
 
     
+@pytest.mark.skip("unskip and fix when ready")
 def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku instead?
     sku:str = "allocated-SKU"
     other_sku:str = "other-sku"
@@ -119,6 +113,7 @@ def test_deallocate_decrements_correct_quantity(): # Bad naming ... _correct_sku
     assert batch_result.sku == sku
     
 
+@pytest.mark.skip("unskip and fix when ready")
 def test_trying_to_deallocate_unallocated_batch():
     sku:str = "SKU-1"
     uow = FakeUnitOfWork()

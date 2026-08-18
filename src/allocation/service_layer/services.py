@@ -5,7 +5,6 @@ from typing import Optional
 
 from allocation.domain import model
 from allocation.domain.model import OrderLine
-# from allocation.adapters.repository import AbstractRepository
 from allocation.service_layer import unit_of_work
 
 class InvalidSku(Exception):
@@ -15,13 +14,16 @@ def is_valid_sku(sku, batches):
     return sku in {b.sku for b in batches}
 
 def add_batch(batch_ref, sku, qty, eta: Optional[date],
-        uow:unit_of_work.AbstractUnitOfWork,) -> None:
+        uow:unit_of_work.AbstractUnitOfWork,) -> None: # this argument could be start_uow: AbstractUnitOfWorkStarter instead:?
+    # and this could be with start_uow() as uow:
     with uow:
         uow.batches.add(model.Batch(batch_ref, sku, qty, eta))
         uow.commit()
 
 def allocate(
-    orderid:str, sku:str, qty: int,
+    orderid:str,
+    sku:str,
+    qty: int,
     uow: unit_of_work.AbstractUnitOfWork
 ) -> str:
     line = OrderLine(orderid, sku, qty)
