@@ -5,8 +5,6 @@ from allocation.domain import model
 from allocation.service_layer import services
 from allocation.adapters import repository
 
-
-
 class FakeRepository(repository.AbstractRepository):
     def __init__(self, batches):
         self._batches = set(batches)
