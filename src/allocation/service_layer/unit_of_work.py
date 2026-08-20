@@ -1,6 +1,8 @@
+# Implimentation: Mixed, context mngr and UnitOfWork are in the same class.
+
 from __future__ import annotations
 import abc
-from typing import ContextManager
+# from typing import ContextManager # Not needed with mixed implementation
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from allocation import config
@@ -12,6 +14,13 @@ class AbstractUnitOfWork(abc.ABC):
     # should this class contain __enter__ and __exit__?
     # or should the context manager and the UoW be seperate?
     # up to you!
+
+    # combined implemententation:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.commit()
 
     @abc.abstractmethod
     def commit(self):
@@ -25,10 +34,10 @@ DEFAULT_SESSION_FACTORY = sessionmaker(
     bind=create_engine(
         config.get_postgres_uri(),
     )
-)    
+)
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
-    ...
+    
     # One alternative would be to define a 'start_uow' function,
     # or a UnitOfWorkStarter or UnitOfWorkManager that does the
     # job of context manager, leaving the UoW as a seperate class
@@ -36,4 +45,5 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     # A type like this could work?
     # AbstractUnitOfWorkStarter = ContextManager[AbstractUnitOfWork]
-    
+    ...
+   

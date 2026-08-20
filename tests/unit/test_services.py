@@ -2,7 +2,7 @@
 import pytest
 
 from allocation.domain import model
-from allocation.service_layer import services
+from allocation.service_layer import services, unit_of_work
 from allocation.adapters import repository
 
 class FakeRepository(repository.AbstractRepository):
@@ -27,19 +27,44 @@ class FakeRepository(repository.AbstractRepository):
 class FakeSession:
     comitted = False
 
-class FakeUnitOfWork:
-    ...
+class FakeUnitOfWork(unit_of_work.AbstractUnitOfWork):
+    def __init__(self):
+        self.batches = FakeRepository([])
+        self.committed = False
+
+    # def __enter__(self):
+    #     # open session
+    #     # In mock session isn't needed and self.batches can be a straight accessor to FakeRepository
+        
+
+    # def __exit__(self, *args):
+    #     # close session, nothing needs to happen in mock
+    #     super().__exit__()
+
+    def commit(self):
+        # Since operations on batches will be straight set operations, committing is redundant
+        # To properly mock a committed flag will be set as session.
+        # This way we can still test whether something has been comitted
+        self.committed = True
+    
+    def rollback(self, *args):
+        pass
+    
 
 def test_add_batch():
     uow = FakeUnitOfWork()
-    # repo, session = FakeRepository([]), FakeSession()
     # fake_uow_starter = FakeUoWContextManger(uow) ?
-    # fake_uow_starter = contextlib.nullcontext(uow) ?
+    # fake_uow_starter = contextlib.nullcontext(uow) ? - outside scope, not doing this
     # services.add_batch("b1", "CRUNCY-ARMCHAIR", 100, None, fake_uow_starter)
-    assert uow.batches.get("b1") is not None
-    assert uow.comitted
+    uow = FakeUnitOfWork()
+    with uow: # opens context
+        services.add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
+        uow.commit()
+    # Exiting block closes context
 
-@pytest.mark.skip("unskip and fix when ready")
+    assert uow.batches.get("b1") is not None
+    assert uow.committed
+
 def test_allocate_returns_allocation():
     sku:str = "COMPLICATED-LAMP"
     uow = FakeUnitOfWork()
@@ -62,7 +87,7 @@ def test_commits():
     uow = FakeUnitOfWork()
     services.add_batch("b1", sku, 100, None, uow)
     services.allocate("o1", sku, 10, uow)
-    assert uow.comitted
+    assert uow.committed
 
 
 
